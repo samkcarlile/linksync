@@ -1,4 +1,5 @@
 const path = require('path');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/renderer/index.js',
@@ -6,10 +7,11 @@ module.exports = {
     path: path.join(__dirname, 'dist'),
     filename: 'bundle.js',
   },
+  target: 'electron-renderer',
   mode: process.env.NODE_ENV || 'development',
   devtool: 'source-map',
   devServer: {
-    contentBase: path.join(__dirname, '/src/renderer'),
+    contentBase: path.join(__dirname, 'dist'),
     historyApiFallback: true,
     compress: true,
     proxy: {
@@ -22,21 +24,12 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.jsx?/,
-        include: path.join(__dirname, '/src/renderer'),
-        use: [
-          {
-            loader: 'babel-loader',
-            options: {
-              presets: ['@babel/preset-env', '@babel/preset-react'],
-              plugins: ['@babel/plugin-transform-runtime'],
-            },
-          },
-        ],
+        test: /\.jsx?$/,
+        exclude: /node_modules/,
+        use: [{ loader: 'swc-loader' }],
       },
       {
         test: /\.css$/,
-        exclude: /node_modules/,
         use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
       },
       {
@@ -48,4 +41,16 @@ module.exports = {
   resolve: {
     extensions: ['.jsx', '.js'],
   },
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: 'node_modules/bootstrap-icons/bootstrap-icons.svg',
+        },
+        {
+          from: 'src/renderer/index.html',
+        },
+      ],
+    }),
+  ],
 };
